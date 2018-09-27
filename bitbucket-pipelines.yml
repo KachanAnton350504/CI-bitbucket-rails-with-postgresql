@@ -1,0 +1,33 @@
+image: ruby:2.5.1
+pipelines:
+  default:
+  - step:
+      script:
+      # I need to export POSTGRES_HOST variable for my database.yml: host: <%= ENV.fetch("POSTGRES_HOST") {} %>
+      # If I dont do this I'll get an error like this:
+      #  PG::ConnectionBad:
+      #     could not connect to server: No such file or directory
+      #  	Is the server running locally and accepting
+      #  	connections on Unix domain socket "/var/run/postgresql/.s.PGSQL.5432"?
+      - export POSTGRES_HOST=localhost
+      - curl -sL https://deb.nodesource.com/setup_8.x | bash -
+      - apt-get update && apt-get install nodejs
+      - RAILS_ENV=test gem install bundler --no-ri --no-rdoc
+      - RAILS_ENV=test bundle install
+      - RAILS_ENV=test bundle exec rspec
+
+      services:
+      - postgres
+definitions:
+  services:
+    postgres:
+      image: postgres
+      environment:
+        # It's default database name which will be created on bitbucket server, when CI start.
+        # My test database called app_test in database.yml.
+        # And as you see I don't use rake db:create command in the script above.
+        # Because database what I need has already created with help below command.
+        POSTGRES_DB: app_test
+        # default postgres user is a 'root'. If you want change username, for example POSTGRES_USER: test, you must add
+        # username: test in your database.yml
+        POSTGRES_USER: root

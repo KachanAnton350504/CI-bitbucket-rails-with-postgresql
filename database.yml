@@ -1,0 +1,17 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: app_dev
+
+test:
+  <<: *default
+  host: <%= ENV.fetch("POSTGRES_HOST") {} %>
+  database: app_test
+
+production:
+  <<: *default
+  database: app_production
